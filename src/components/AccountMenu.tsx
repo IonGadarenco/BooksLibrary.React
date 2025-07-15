@@ -1,14 +1,17 @@
 import { Nightlight, LightMode, AccountCircle } from '@mui/icons-material';
-import { Menu, MenuItem, IconButton, Box, Avatar } from '@mui/material';
+import { Menu, MenuItem, IconButton, Box, Avatar, Typography, Divider } from '@mui/material';
 import { useContext, useState } from 'react';
-import { ThemeContext } from '../contexts/ThemeContext';
+import { ThemeContext } from '../contexts/themeContext';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Link } from 'react-router-dom';
 
 export const AccountMenu = () => {
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
   const { mode, toggleTheme } = useContext(ThemeContext);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
+
+  console.log(user);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -23,7 +26,7 @@ export const AccountMenu = () => {
     <Menu
       anchorEl={anchorEl}
       anchorOrigin={{
-        vertical: 'top',
+        vertical: 'bottom',
         horizontal: 'right',
       }}
       id={menuId}
@@ -35,16 +38,47 @@ export const AccountMenu = () => {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
       <MenuItem onClick={handleMenuClose}>
-        {isAuthenticated ? (
-          <Box onClick={() => logout()}>Logout</Box>
+        {isAuthenticated && user ? (
+          <Typography
+            component={Link}
+            to="/profile"
+            sx={{
+              textDecoration: 'none',
+              color: 'text.primary',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '150px',
+              display: 'block',
+            }}
+          >
+            {user.name || user.email || 'Profile'}
+          </Typography>
         ) : (
-          <Box onClick={() => loginWithRedirect()}>Login</Box>
+          <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            Not Logged In
+          </Typography>
         )}
       </MenuItem>
+      <Divider sx={{ my: 0.5 }} />
       <MenuItem onClick={handleMenuClose}>
-        <IconButton color="inherit" onClick={toggleTheme}>
+        <Box
+          onClick={() =>
+            isAuthenticated
+              ? logout({ logoutParams: { returnTo: window.location.origin } })
+              : loginWithRedirect()
+          }
+          sx={{
+            width: '100%',
+            textAlign: 'left',
+          }}
+        >
+          {isAuthenticated ? 'Logout' : 'Login'}
+        </Box>
+      </MenuItem>
+      <MenuItem onClick={handleMenuClose}>
+        <IconButton color="inherit" onClick={toggleTheme} sx={{ ml: -1 }}>
           {mode === 'light' ? <Nightlight /> : <LightMode />}
         </IconButton>
       </MenuItem>
