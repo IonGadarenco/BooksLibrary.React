@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../api/axiosInstance';
 import axios from 'axios';
-import type { AuthResponseDto } from '../models/dtos/authResponseDto';
+import type { AuthResponseDto } from '../types/dtos/authResponseDto';
+import { AUTH_ENDPOINTS } from '../api/endpoints';
 
 const USER_SYNC_SESSION_KEY = 'user_synced_for_session';
 
@@ -34,7 +35,7 @@ export const useSyncUser = () => {
       const hasSyncedInSession = sessionStorage.getItem(USER_SYNC_SESSION_KEY) === userIdentifier;
 
       if (hasSyncedInSession) {
-        console.log("User already synced in this session. Skipping sync.");
+        console.log('User already synced in this session. Skipping sync.');
         setIsSyncing(false);
         return;
       }
@@ -44,13 +45,12 @@ export const useSyncUser = () => {
 
       try {
         console.log('Attempting to sync user with backend...');
-        const response = await api.post<AuthResponseDto>('/Auth/sync');
+        const response = await api.post<AuthResponseDto>(AUTH_ENDPOINTS.SYNC_USER);
 
         setSyncedUser(response.data);
         console.log('User synced with backend:', response.data);
 
         sessionStorage.setItem(USER_SYNC_SESSION_KEY, userIdentifier);
-
       } catch (error) {
         console.error('Error syncing user with backend:', error);
         if (axios.isAxiosError(error) && error.response) {

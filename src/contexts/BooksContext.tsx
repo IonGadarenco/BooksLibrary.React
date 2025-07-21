@@ -1,9 +1,9 @@
 import { createContext, useState, type ReactNode } from 'react';
-import type { BookListType } from '../models/types/bookListType';
+import type { BookListItem } from '../types/book';
 
 interface BooksContextType {
-  books: BookListType[];
-  setBooks: (books: BookListType[]) => void;
+  books: BookListItem[];
+  setBooks: (books: BookListItem[]) => void;
 }
 
 export const BooksContext = createContext<BooksContextType>({
@@ -12,7 +12,7 @@ export const BooksContext = createContext<BooksContextType>({
 });
 
 export const BooksProvider = ({ children }: { children: ReactNode }) => {
-  const [books, setBooks] = useState<BookListType[]>([]);
+  const [books, setBooks] = useState<BookListItem[]>([]);
 
   return <BooksContext.Provider value={{ books, setBooks }}>{children}</BooksContext.Provider>;
 };

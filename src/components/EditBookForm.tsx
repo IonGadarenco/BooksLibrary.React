@@ -9,6 +9,10 @@ import { BOOK_ENDPOINTS } from '../api/endpoints';
 import type { Publisher } from '../types/publisher';
 import type { Author } from '../types/author';
 import type { Category } from '../types/category';
+import type { BookDetails } from '../types/book';
+import { Edit } from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
+import { replace, useNavigate } from 'react-router-dom';
 
 interface BookFormValues {
   title: string;
@@ -29,25 +33,47 @@ const validationSchema = Yup.object().shape({
     .integer('Total copies must be an integer')
     .required('Total copies required'),
   publisher: Yup.object().shape({
-    fullName: Yup.string().required('Publisher name is required').max(50, 'Publisher name cannot exceed 50 characters'),
-    address: Yup.string().required('Publisher address is required').max(100, 'Publisher address cannot exceed 100 characters'),
+    fullName: Yup.string()
+      .required('Publisher name is required')
+      .max(50, 'Publisher name cannot exceed 50 characters'),
+    address: Yup.string()
+      .required('Publisher address is required')
+      .max(100, 'Publisher address cannot exceed 100 characters'),
   }),
   authors: Yup.array()
-    .of(Yup.object().shape({ fullName: Yup.string().required('Author name is required').max(50, 'Author name cannot exceed 50 characters') }))
+    .of(
+      Yup.object().shape({
+        fullName: Yup.string()
+          .required('Author name is required')
+          .max(50, 'Author name cannot exceed 50 characters'),
+      })
+    )
     .min(1, 'At least one author is required'),
   categories: Yup.array()
-    .of(Yup.object().shape({ fullName: Yup.string().required('Category name is required').max(50, 'Category name cannot exceed 50 characters') }))
-    .min(1, 'At least one category is required')
+    .of(
+      Yup.object().shape({
+        fullName: Yup.string()
+          .required('Category name is required')
+          .max(50, 'Category name cannot exceed 50 characters'),
+      })
+    )
+    .min(1, 'At least one category is required'),
 });
 
-const AddBookForm = () => {
+interface EditBookFormProps {
+  book: BookDetails;
+}
+
+const EditBookForm = ({ book }: EditBookFormProps) => {
   const api = useApi();
   const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null);
   const [previewCoverImageUrl, setPreviewCoverImageUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [editImage, setEditImage] = useState(false);
+  const navigate = useNavigate();
 
-  const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {    
+  const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file: File = event.target.files[0];
       setSelectedCoverImage(file);
@@ -59,10 +85,20 @@ const AddBookForm = () => {
     }
   };
 
+  const handleEditImageToggle = () => {
+    setEditImage(!editImage);
+    if (editImage) {
+      setSelectedCoverImage(null);
+      setPreviewCoverImageUrl(null);
+    } else {
+      setSelectedCoverImage(null);
+    }
+  };
+
   return (
     <Box maxWidth={800}>
       <Typography variant="h5" gutterBottom>
-        Add a New Book
+        Edit Book
       </Typography>
 
       {successMessage && (
@@ -78,16 +114,16 @@ const AddBookForm = () => {
 
       <Formik<BookFormValues>
         initialValues={{
-          title: '',
-          description: '',
-          isbn: '',
-          totalCopies: 1,
+          title: book.title,
+          description: book.description,
+          isbn: book.isbn,
+          totalCopies: book.totalCopies,
           publisher: {
-            fullName: '',
-            address: '',
+            fullName: book.publisher.fullName,
+            address: book.publisher.address,
           },
-          authors: [{ fullName: '' }],
-          categories: [{ fullName: '' }],
+          authors: book.authors.map(author => ({ fullName: author.fullName })),
+          categories: book.categories.map(category => ({ fullName: category.fullName })),
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
@@ -98,6 +134,7 @@ const AddBookForm = () => {
           try {
             const formData = new FormData();
 
+            formData.append('id', book.id.toString());
             formData.append('title', values.title);
             formData.append('description', values.description);
             formData.append('isbn', values.isbn);
@@ -115,18 +152,27 @@ const AddBookForm = () => {
             });
 
             if (selectedCoverImage) {
-              formData.append('coverImageFile', selectedCoverImage);
+              const form = new FormData();
+              form.append('coverImageFile', selectedCoverImage, selectedCoverImage.name);
+              form.append('coverImageUrlToDelete', book.coverImageUrl || '');
+
+              const coverImageUrlRes = await api.post(BOOK_ENDPOINTS.EDIT_COVER_IMAGE, form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              });
+              formData.append('coverImageUrl', coverImageUrlRes.data);
+            }
+            else {
+              formData.append('coverImageUrl', book.coverImageUrl);
             }
 
-            const response = await api.post(BOOK_ENDPOINTS.ADD_BOOK, formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
+            await api.put(BOOK_ENDPOINTS.EDIT_BOOK, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
             });
-            setSuccessMessage(`Book "${response.data.title}" added successfully!`);
+            setSuccessMessage(`Book edited successfully!`);
             resetForm();
             setSelectedCoverImage(null);
             setPreviewCoverImageUrl(null);
+            navigate(`/books/${book.id}`, { replace: true });
           } catch (error) {
             const axiosError = error as AxiosError;
             console.error(
@@ -138,7 +184,7 @@ const AddBookForm = () => {
               (axiosError.response?.data as any)?.title ||
               (axiosError.response?.data as string) ||
               axiosError.message ||
-              'Failed to add book. Please try again.';
+              'Failed to edit book. Please try again.';
             setUploadError(errorMessage);
           } finally {
             setSubmitting(false);
@@ -344,27 +390,42 @@ const AddBookForm = () => {
               </FieldArray>
 
               <Typography mt={3} variant="h6">
-                Add Book Cover Image
+                Book Cover Image
               </Typography>
 
-              <Input
-                type="file"
-                name="coverImageFile"
-                onChange={handleCoverImageChange}
-                inputProps={{ accept: 'image/*' }}
-                sx={{ mt: 1 }}
-              />
-              {previewCoverImageUrl && (
-                <Box mt={2} display="flex" flexDirection="column" alignItems="center">
-                  <img
-                    src={previewCoverImageUrl}
-                    alt="Cover Preview"
-                    style={{ maxWidth: '200px', height: 'auto', display: 'block' }}
-                  />
-                  <Typography variant="caption">Image Preview</Typography>
-                </Box>
-              )}
-
+              <Box display="flex" flexDirection="column" alignItems="center" mt={2}>
+                {editImage ? (
+                  <CloseIcon onClick={handleEditImageToggle} />
+                ) : (
+                  <Edit onClick={handleEditImageToggle} />
+                )}
+                {editImage ? (
+                  <>
+                    <Input
+                      type="file"
+                      name="coverImageFile"
+                      onChange={handleCoverImageChange}
+                      inputProps={{ accept: 'image/*' }}
+                      sx={{ mt: 1 }}
+                    />
+                    {previewCoverImageUrl && (
+                      <Box mt={2} display="flex" flexDirection="column" alignItems="center">
+                        <img
+                          src={previewCoverImageUrl}
+                          alt="Cover Preview"
+                          style={{ maxWidth: '200px', height: 'auto', display: 'block' }}
+                        />
+                        <Typography variant="caption">New Image Preview</Typography>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="caption">Current Image Preview</Typography>
+                    <img src={book.coverImageUrl} alt={book.title} width={200} />
+                  </>
+                )}
+              </Box>
               <Box mt={4}>
                 <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
                   {isSubmitting ? 'Submitting...' : 'Submit Book'}
@@ -378,4 +439,4 @@ const AddBookForm = () => {
   );
 };
 
-export default AddBookForm;
+export default EditBookForm;

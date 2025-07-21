@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from 'react';
-import type { PagedResultType } from '../models/types/PagedResultType';
+import type { PagedResultType } from '../types/PagedResultType';
 import { useApi } from '../api/axiosInstance';
 import { BooksContext } from '../contexts/booksContext';
 import { useRequest } from '../contexts/requestContext';
-import type { PagedRequestType } from '../models/types/PagedRequestType';
+import type { PagedRequestType } from '../types/PagedRequestType';
+import { BOOK_ENDPOINTS } from '../api/endpoints';
 
 export const useSearch = () => {
   const { request, updateRequest } = useRequest();
@@ -12,9 +13,10 @@ export const useSearch = () => {
   const [pagedResult, setPagedResult] = useState<PagedResultType>();
 
   useEffect(() => {
-    api.post<PagedResultType>('books/paged', request).then(res => {
+    api.post<PagedResultType>(BOOK_ENDPOINTS.BOOKS_PAGED, request).then(res => {
       setPagedResult(res.data);
       setBooks(res.data.items);
+      console.log(res.data.items);
     });
   }, [request, api, setBooks]);
 

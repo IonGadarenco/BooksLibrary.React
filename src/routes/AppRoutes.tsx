@@ -9,6 +9,8 @@ import ProfilePage from '../pages/ProfilePage';
 import MainLayout from '../layouts/MainLayout';
 import AddBookPage from '../pages/AddBookPage';
 import SavedBooksPage from '../pages/SavedBooksPage';
+import SettingsPage from '../pages/SettingsPage';
+import EditBookPage from '../pages/EditBookPage';
 
 const AppRoutes = () => {
   return (
@@ -19,9 +21,11 @@ const AppRoutes = () => {
         <Route path="/books/paged" element={<BooksListPage />}></Route>
         <Route path="/profile" element={<ProfilePage />}></Route>
         <Route path="/saved" element={<SavedBooksPage />}></Route>
+        <Route path="/access-denied" element={<AccessDeniedPage />}></Route>
         <Route path="/admin-dashboard/users" element={<AdminDashboardPage />}></Route>
         <Route path="/admin-dashboard/add-book" element={<AddBookPage />}></Route>
-        <Route path="/access-denied" element={<AccessDeniedPage />}></Route>
+        <Route path="/admin-dashboard/edit-book/:id" element={<EditBookPage />}></Route>
+        <Route path="/admin-dashboard/settings" element={<SettingsPage />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Route>
     </Routes>

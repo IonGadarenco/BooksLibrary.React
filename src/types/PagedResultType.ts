@@ -1,7 +1,7 @@
-import type { BookListType } from './bookListType';
+import type { BookListItem } from './book';
 
 export interface PagedResultType {
-  items: BookListType[];
+  items: BookListItem[];
   totalItems: number;
   totalPages: number;
   pageIndex: number;

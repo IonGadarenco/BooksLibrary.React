@@ -1,6 +1,6 @@
-import { Typography } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import AddBookForm from '../components/AddBookForm';
+import { Box } from '@mui/material';
 
 const AddBookPage = () => {
   return (
@@ -8,9 +8,14 @@ const AddBookPage = () => {
       <Helmet>
         <title>Add Book</title>
       </Helmet>
-      <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-        <AddBookForm/>
-      </Typography>
+      <Box
+        display="flex"
+        textAlign="center"
+        justifyContent="center"
+        sx={{ mt: { xs: 20, md: 4 }, mx: { xs: 2, md: 'auto' } }}
+      >
+        <AddBookForm />
+      </Box>
     </>
   );
 };

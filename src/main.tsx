@@ -5,6 +5,7 @@ import App from './App.tsx';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { ThemeProvider } from './contexts/themeContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,8 +19,11 @@ createRoot(document.getElementById('root')!).render(
             audience: 'https://bookslibrary.api',
             scope: 'openid profile email',
           }}
+          cacheLocation="localstorage"
         >
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </Auth0Provider>
       </BrowserRouter>
     </HelmetProvider>

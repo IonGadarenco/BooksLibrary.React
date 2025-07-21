@@ -1,67 +1,106 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  CssBaseline,
+  ThemeProvider,
+  Typography,
+} from '@mui/material';
 import { getTheme } from './theme/Theme';
-import { ThemeContext } from './contexts/themeContext';
-import { useState } from 'react';
 import { BooksProvider } from './contexts/booksContext';
 import { RequestProvider } from './contexts/requestContext';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useSyncUser } from './hooks/useSyncUser';
 import AppRoutes from './routes/AppRoutes';
+import ReplayIcon from '@mui/icons-material/Replay';
+import { useContext, useEffect } from 'react';
+import { ThemeContext } from './contexts/themeContext';
 
 const App = () => {
-  const [mode, setMode] = useState<'light' | 'dark'>('light');
-  const { isLoading: auth0Loading, error: auth0Error } = useAuth0();
-  const { syncedUser, isSyncing, syncError } = useSyncUser();
+  const { isLoading: auth0Loading, error: auth0Error, isAuthenticated, isLoading, user, error, getAccessTokenSilently } = useAuth0();
+  const { isSyncing, syncError } = useSyncUser();
+  const { mode } = useContext(ThemeContext);
 
-  const toggleTheme = () => {
-    setMode(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
+  useEffect(() => {
+    console.log('Auth0 State:');
+    console.log('  isAuthenticated:', isAuthenticated);
+    console.log('  isLoading:', isLoading);
+    console.log('  User:', user);
+    console.log('  Error:', error);
 
-  // 1. Stare de încărcare Auth0 inițială
+    if (isAuthenticated) {
+      getAccessTokenSilently()
+        .then(token => console.log('Access Token (silently):', token))
+        .catch(e => console.error('Error getting token silently:', e));
+    }
+  }, [isAuthenticated, user, isLoading, error, getAccessTokenSilently]);
+
   if (auth0Loading) {
-    return <div>Se încarcă autentificarea...</div>; // Sau un spinner drăguț
+    return (
+      <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 20 }}>
+          <Typography variant="h6" color="text.secondary">
+            Loading authentication...
+          </Typography>
+          <CircularProgress size={100} />
+        </Box>
+      </>
+    );
   }
 
-  // 2. Eroare Auth0 (dacă autentificarea inițială eșuează)
   if (auth0Error) {
-    return <div>Oups... Eroare de autentificare: {auth0Error.message}</div>;
+    return (
+      <>
+        <Alert variant="filled" severity="error" sx={{ mt: 2 }}>
+          {auth0Error.message}
+        </Alert>
+      </>
+    );
   }
 
-  // 3. Stare de sincronizare cu backend-ul
-  // Aici poți alege să blochezi UI-ul sau să afișezi un indicator
-  // până când sincronizarea este completă.
   if (isSyncing) {
-    return <div>Sincronizez datele utilizatorului...</div>; // Sau un spinner
+    return (
+      <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 20 }}>
+          <Typography variant="h6" color="text.secondary">
+            Is syncing user data...
+          </Typography>
+          <CircularProgress size={100} />
+        </Box>
+      </>
+    );
   }
 
-  // 4. Eroare la sincronizarea cu backend-ul
-  // Aici poți decide cum să gestionezi eroarea. Poate vrei să permiți aplicației să continue,
-  // dar cu o notificare că datele utilizatorului nu sunt complet sincronizate.
-  // if (syncError) {
-  //   return (
-  //     <div>
-  //       Eroare la sincronizarea utilizatorului cu baza de date: {syncError}
-  //       <br />
-  //       Vă rugăm să încercați să reîncărcați pagina sau să contactați suportul.
-  //     </div>
-  //   );
-  // }
-
-  console.log(syncedUser);
+  if (syncError) {
+    return (
+      <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 25 }}>
+          <ReplayIcon
+            sx={{
+              cursor: 'pointer',
+              color: 'error.main',
+              fontSize: 150,
+            }}
+            onClick={() => window.location.reload()}
+          />
+          <Typography variant="h6" color="text.secondary">
+            {syncError} Click the icon to retry.
+          </Typography>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <>
-      <ThemeContext.Provider value={{ mode, toggleTheme }}>
         <ThemeProvider theme={getTheme(mode)}>
           <RequestProvider>
             <BooksProvider>
               <CssBaseline />
-              {/* <MainLayout/> */}
               <AppRoutes />
             </BooksProvider>
           </RequestProvider>
         </ThemeProvider>
-      </ThemeContext.Provider>
     </>
   );
 };

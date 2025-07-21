@@ -12,11 +12,11 @@ const BooksListPage = () => {
       <Helmet>
         <title>Books</title>
       </Helmet>
-      <Container fixed>
+      <Container fixed sx={{mt: { xs: 21, sm: 20, md: 4}}}>
         {books.length > 0 ? (
-          <BookList books={books} />
+          <BookList books={books}  />
         ) : (
-          <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+          <Typography variant="h6" align="center">
             No books found. Try searching.
           </Typography>
         )}

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import type { PagedRequestType } from '../models/types/PagedRequestType';
+import type { PagedRequestType } from '../types/PagedRequestType';
 
 type RequestUpdateAction =
   | Partial<PagedRequestType>

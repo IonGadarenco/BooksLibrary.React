@@ -7,10 +7,12 @@ import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import InfoIcon from '@mui/icons-material/Info';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import GroupIcon from '@mui/icons-material/Group';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import BookIcon from '@mui/icons-material/Book';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 
@@ -19,13 +21,15 @@ const DrawerListComponent = () => {
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Profile', icon: <AccountCircleIcon />, path: '/profile' },
     { text: 'All books', icon: <LibraryBooksIcon />, path: '/books/paged' },
-    { text: 'Info', icon: <InfoIcon />, path: '/info' },
-    { text: 'Saved', icon: <BookmarkIcon />, path: '/saved' },
+    { text: 'Liked books', icon: <FavoriteIcon />, path: '/liked' },
+    { text: 'Reserved books', icon: <BookmarkIcon />, path: '/reserved' },
+    { text: 'Loaned books', icon: <BookIcon />, path: '/loaned' },
   ];
 
   const adminMenuItems = [
     { text: 'Users', icon: <GroupIcon />, path: '/admin-dashboard/users' },
     { text: 'Add book', icon: <AddCircleIcon />, path: '/admin-dashboard/add-book' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/admin-dashboard/settings' },
   ];
 
   return (
@@ -35,12 +39,10 @@ const DrawerListComponent = () => {
       </Typography>
       <Divider />
       <List>
-        {mainMenuItems.map((item) => (
+        {mainMenuItems.map(item => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton component={Link} to={item.path}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -48,12 +50,10 @@ const DrawerListComponent = () => {
       </List>
       <Divider />
       <List>
-        {adminMenuItems.map((item) => (
+        {adminMenuItems.map(item => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton component={Link} to={item.path}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
