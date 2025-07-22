@@ -11,6 +11,7 @@ import {
 import { styled, alpha } from '@mui/material/styles';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useSearch } from '../hooks/useSearch';
+import { useNavigate } from 'react-router-dom';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -52,6 +53,7 @@ export default function BookSearch() {
     handleSearchInputChange,
     handleSearchClick,
   } = useSearch();
+  const navigate = useNavigate();
 
   return (
     <Grid size={{ xs: 12, md: 8 }}>
@@ -65,6 +67,7 @@ export default function BookSearch() {
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
               onChange={handleSearchInputChange}
+              onClick={() => navigate('/books/paged')}
             />
           </Search>
         </Grid>
@@ -84,7 +87,7 @@ export default function BookSearch() {
                 <MenuItem value="Authors">Authors</MenuItem>
                 <MenuItem value="Categories">Categories</MenuItem>
                 <MenuItem value="Publisher">Publisher</MenuItem>
-                <MenuItem value="ISBM">ISBM</MenuItem>
+                <MenuItem value="ISBN">ISBN</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -102,7 +105,6 @@ export default function BookSearch() {
               >
                 <MenuItem value="Title">Title</MenuItem>
                 <MenuItem value="TotalCopies">Total Copies</MenuItem>
-                <MenuItem value="Categories">Categories</MenuItem>
               </Select>
             </FormControl>
           </Box>

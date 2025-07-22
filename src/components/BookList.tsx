@@ -10,7 +10,7 @@ interface Props {
 const BookList = ({ books }: Props) => {
   return (
     <>
-      <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+      <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
         {books.map(book => (
           <Grid size={{ xs: 12, sm: 4, md: 3 }} key={book.id}>
             <Link to={`/books/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>

@@ -15,7 +15,6 @@ export default function BookActions({ book, onActionComplete }: BookActionsProps
   const { loginWithRedirect, isAuthenticated } = useAuth0();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  console.log('BookActions rendered with book:', book);
 
   const handleAction = async (action: 'reserve' | 'cancel') => {
     if (!isAuthenticated) {

@@ -9,6 +9,7 @@ import { BOOK_ENDPOINTS } from '../api/endpoints';
 import type { Publisher } from '../types/publisher';
 import type { Author } from '../types/author';
 import type { Category } from '../types/category';
+import { useNavigate } from 'react-router-dom';
 
 interface BookFormValues {
   title: string;
@@ -29,15 +30,31 @@ const validationSchema = Yup.object().shape({
     .integer('Total copies must be an integer')
     .required('Total copies required'),
   publisher: Yup.object().shape({
-    fullName: Yup.string().required('Publisher name is required').max(50, 'Publisher name cannot exceed 50 characters'),
-    address: Yup.string().required('Publisher address is required').max(100, 'Publisher address cannot exceed 100 characters'),
+    fullName: Yup.string()
+      .required('Publisher name is required')
+      .max(50, 'Publisher name cannot exceed 50 characters'),
+    address: Yup.string()
+      .required('Publisher address is required')
+      .max(100, 'Publisher address cannot exceed 100 characters'),
   }),
   authors: Yup.array()
-    .of(Yup.object().shape({ fullName: Yup.string().required('Author name is required').max(50, 'Author name cannot exceed 50 characters') }))
+    .of(
+      Yup.object().shape({
+        fullName: Yup.string()
+          .required('Author name is required')
+          .max(50, 'Author name cannot exceed 50 characters'),
+      })
+    )
     .min(1, 'At least one author is required'),
   categories: Yup.array()
-    .of(Yup.object().shape({ fullName: Yup.string().required('Category name is required').max(50, 'Category name cannot exceed 50 characters') }))
-    .min(1, 'At least one category is required')
+    .of(
+      Yup.object().shape({
+        fullName: Yup.string()
+          .required('Category name is required')
+          .max(50, 'Category name cannot exceed 50 characters'),
+      })
+    )
+    .min(1, 'At least one category is required'),
 });
 
 const AddBookForm = () => {
@@ -46,8 +63,9 @@ const AddBookForm = () => {
   const [previewCoverImageUrl, setPreviewCoverImageUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {    
+  const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file: File = event.target.files[0];
       setSelectedCoverImage(file);
@@ -127,6 +145,9 @@ const AddBookForm = () => {
             resetForm();
             setSelectedCoverImage(null);
             setPreviewCoverImageUrl(null);
+            setTimeout(() => {
+              navigate(`/books/paged`, { replace: true });
+            }, 2500);
           } catch (error) {
             const axiosError = error as AxiosError;
             console.error(

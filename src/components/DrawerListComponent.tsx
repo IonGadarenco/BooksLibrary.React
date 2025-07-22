@@ -13,10 +13,29 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookIcon from '@mui/icons-material/Book';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useSyncUser } from '../hooks/useSyncUser';
 
 const DrawerListComponent = () => {
+  const { isSyncing, syncError, isAdmin } = useSyncUser();
+
+  if (isSyncing) {
+    return (
+      <Box textAlign="center" mt={2}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (syncError) {
+    return (
+      <Typography color="error" align="center" mt={2}>
+        {syncError}
+      </Typography>
+    );
+  }
+
   const mainMenuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Profile', icon: <AccountCircleIcon />, path: '/profile' },
@@ -49,16 +68,18 @@ const DrawerListComponent = () => {
         ))}
       </List>
       <Divider />
-      <List>
-        {adminMenuItems.map(item => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton component={Link} to={item.path}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {isAdmin && (
+        <List>
+          {adminMenuItems.map(item => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton component={Link} to={item.path}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
     </>
   );
 };

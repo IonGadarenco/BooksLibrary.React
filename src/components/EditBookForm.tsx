@@ -12,7 +12,7 @@ import type { Category } from '../types/category';
 import type { BookDetails } from '../types/book';
 import { Edit } from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
-import { replace, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface BookFormValues {
   title: string;
@@ -160,8 +160,7 @@ const EditBookForm = ({ book }: EditBookFormProps) => {
                 headers: { 'Content-Type': 'multipart/form-data' },
               });
               formData.append('coverImageUrl', coverImageUrlRes.data);
-            }
-            else {
+            } else {
               formData.append('coverImageUrl', book.coverImageUrl);
             }
 
@@ -172,7 +171,9 @@ const EditBookForm = ({ book }: EditBookFormProps) => {
             resetForm();
             setSelectedCoverImage(null);
             setPreviewCoverImageUrl(null);
-            navigate(`/books/${book.id}`, { replace: true });
+            setTimeout(() => {
+              navigate(`/books/${book.id}`, { replace: true });
+            }, 2500);
           } catch (error) {
             const axiosError = error as AxiosError;
             console.error(

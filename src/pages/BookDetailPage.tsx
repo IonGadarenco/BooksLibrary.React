@@ -9,6 +9,7 @@ import LikeButton from '../components/LikeButton';
 import BookActions from '../components/BookActions';
 import ReviewsSection from '../components/ReviewsSection';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const BookDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,21 @@ const BookDetailPage = () => {
     setLoading(true);
     fetchBookDetails();
   }, [fetchBookDetails]);
+
+  const handleDeleteBook = async () => {
+    if (!book) return;
+
+    if (window.confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
+      try {
+        await api.delete(BOOK_ENDPOINTS.DELETE_BOOK(book.id));
+        alert('Book deleted successfully.');
+        window.location.href = '/books/paged';
+      } catch (error) {
+        console.error('Error deleting book:', error);
+        alert('Failed to delete book. Please try again later.');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -130,6 +146,8 @@ const BookDetailPage = () => {
             >
               <EditIcon />
             </Link>
+            <DeleteForeverIcon onClick={handleDeleteBook} />
+
             <BookActions book={book} onActionComplete={fetchBookDetails} />
             <Typography variant="subtitle2" fontStyle="italic" color="text.secondary">
               ({book.availableCopies} copies)

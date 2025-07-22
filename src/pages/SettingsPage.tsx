@@ -17,7 +17,7 @@ const SettingsPage = () => {
   const [booksPerPage, setBooksPerPage] = useState(10);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const availableOptions = [4, 8, 12, 16, 20, 24, 28, 32];
+  const availableOptions = [2, 4, 8, 12, 16, 20, 24, 28, 32];
 
   useEffect(() => {
     const savedBooksPerPage = localStorage.getItem('booksPerPage');
@@ -77,7 +77,7 @@ const SettingsPage = () => {
           </FormControl>
 
           <Typography variant="body2" color="text.secondary">
-            Aceste setări sunt salvate local în browser.
+            This setting controls how many books are displayed per page in the book list.
           </Typography>
         </CardContent>
       </Card>
@@ -89,7 +89,7 @@ const SettingsPage = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-          Setările au fost salvate!
+          Settings updated successfully!
         </Alert>
       </Snackbar>
     </Box>

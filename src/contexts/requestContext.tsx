@@ -13,7 +13,7 @@ interface RequestContextType {
 
 const defaultRequest: PagedRequestType = {
   pageIndex: 1,
-  pageSize: 3,
+  pageSize: Number(localStorage.getItem('booksPerPage')) || 8,
   columnNameForSorting: 'Title',
   sortDirection: 'asc',
   searchValue: '',
