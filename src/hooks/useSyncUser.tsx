@@ -1,3 +1,4 @@
+// src/hooks/useSyncUser.ts
 import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../api/axiosInstance';
@@ -6,57 +7,74 @@ import type { AuthResponseDto } from '../types/dtos/authResponseDto';
 import { AUTH_ENDPOINTS } from '../api/endpoints';
 
 const USER_SYNC_SESSION_KEY = 'user_synced_for_session';
+const USER_DATA_KEY = 'user_data';
 
-export const useSyncUser = () => {
-  const { isAuthenticated, user } = useAuth0();
+export interface SyncUserResult {
+  syncedUser: AuthResponseDto | null;
+  isAdmin: boolean;
+  loading: boolean; // “haven’t finished loading yet”
+  error: string | null;
+}
+
+export const useSyncUser = (): SyncUserResult => {
+  const { isAuthenticated, user, isLoading: auth0Loading } = useAuth0();
   const api = useApi();
 
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [syncedUser, setSyncedUser] = useState<AuthResponseDto | null>(null);
+  // undefined → not finished, null → loaded/no‐user, AuthResponseDto → loaded/ok
+  const [syncedUser, setSyncedUser] = useState<AuthResponseDto | null | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const syncUser = async () => {
+    // Wait for Auth0 to initialize
+    if (auth0Loading) return;
+
+    (async () => {
+      // 1) Not logged in at all
       if (!isAuthenticated || !user?.sub) {
         setSyncedUser(null);
         sessionStorage.removeItem(USER_SYNC_SESSION_KEY);
+        sessionStorage.removeItem(USER_DATA_KEY);
         return;
       }
 
-      setIsSyncing(true);
-      setSyncError(null);
+      // 2) Try to re-hydrate from sessionStorage
+      if (sessionStorage.getItem(USER_SYNC_SESSION_KEY) === user.sub) {
+        const raw = sessionStorage.getItem(USER_DATA_KEY);
+        if (raw) {
+          try {
+            setSyncedUser(JSON.parse(raw) as AuthResponseDto);
+            return;
+          } catch {
+            // corrupted → fall through to real sync
+          }
+        }
+      }
 
+      // 3) Otherwise, do the real backend sync
       try {
         const { data } = await api.post<AuthResponseDto>(AUTH_ENDPOINTS.SYNC_USER);
         setSyncedUser(data);
         sessionStorage.setItem(USER_SYNC_SESSION_KEY, user.sub);
-        sessionStorage.setItem('user_data', JSON.stringify(data));
-      } catch (err) {
-        console.error('Error syncing user with backend:', err);
-        if (axios.isAxiosError(err) && err.response) {
-          setSyncError(err.response.data?.message ?? 'Failed to sync user with backend.');
+        sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(data));
+      } catch (err: any) {
+        console.error('Sync user failed:', err);
+        if (axios.isAxiosError(err) && err.response?.data?.message) {
+          setError(err.response.data.message);
         } else {
-          setSyncError('Failed to sync user with backend.');
+          setError('Failed to sync user with backend.');
         }
-      } finally {
-        setIsSyncing(false);
+        setSyncedUser(null);
       }
-    };
+    })();
+  }, [auth0Loading, isAuthenticated, user?.sub, api]);
 
-    if (sessionStorage.getItem(USER_SYNC_SESSION_KEY) === user?.sub) {
-      const stored = sessionStorage.getItem('user_data');
-      if (stored) {
-        setSyncedUser(JSON.parse(stored) as AuthResponseDto);
-      } else {
-        syncUser();
-      }
-    } else {
-      syncUser();
-    }
-  }, [isAuthenticated, user?.sub, api]);
+  // Still loading if we haven’t set syncedUser or error yet
+  const loading = syncedUser === undefined && error === null;
 
-  // derivăm isAdmin
-  const isAdmin = syncedUser?.role === 'admin';
-
-  return { syncedUser, isSyncing, syncError, isAdmin };
+  return {
+    syncedUser: syncedUser ?? null,
+    isAdmin: syncedUser?.role === 'admin',
+    loading,
+    error,
+  };
 };

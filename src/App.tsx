@@ -18,7 +18,7 @@ import { ThemeContext } from './contexts/themeContext';
 
 const App = () => {
   const { isLoading: auth0Loading, error: auth0Error, isAuthenticated, isLoading, user, error, getAccessTokenSilently } = useAuth0();
-  const { isSyncing, syncError } = useSyncUser();
+  const { loading, error: syncError } = useSyncUser();
   const { mode } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const App = () => {
     );
   }
 
-  if (isSyncing) {
+  if (loading) {
     return (
       <>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 20 }}>
